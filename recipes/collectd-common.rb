@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: graphite
-# Recipe:: collectd-client
+# Recipe:: collectd-common
 #
 # Copyright 2012, Rackspace Hosting
 #
@@ -17,23 +17,24 @@
 # limitations under the License.
 #
 
-# This recipe installs a collectd server, listening on a network socket,
-# and forwarding to graphite
+# This recipe installs basic required collectd stuff
 #
 
-include_recipe "osops-utils"
-include_recipe "graphite::collectd-common"
+include_recipe "graphite::common"
 
-# this should be indirected to management-network
-servers = IPManagement.get_ips_for_role("carbon-cache", "management", node).map { |x| "tcp://#{x}:6666" }
+include_recipe "collectd"
+include_recipe "collectd-plugins::syslog"
+include_recipe "collectd-plugins::cpu"
+include_recipe "collectd-plugins::df"
+include_recipe "collectd-plugins::disk"
+include_recipe "collectd-plugins::interface"
+include_recipe "collectd-plugins::memory"
+include_recipe "collectd-plugins::swap"
 
-collectd_plugin "zeromq" do
-  template "zeromq_plugin.conf.erb"
-  cookbook "graphite"
-  options :push => servers
+# both readers and writers need this
+package "collectd-zeromq" do
+  action :upgrade
 end
 
-collectd_plugin "libvirt" do
-  options :connection => "qemu:///system",:refresh_interval => 60, :hostname_format => "name"
-end
+collectd_plugin "load"
 

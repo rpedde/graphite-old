@@ -22,22 +22,17 @@
 #
 
 include_recipe "osops-utils"
-include_recipe "collectd"
-include_recipe "collectd-plugins::syslog"
-include_recipe "collectd-plugins::cpu"
-include_recipe "collectd-plugins::df"
-include_recipe "collectd-plugins::disk"
-include_recipe "collectd-plugins::interface"
-include_recipe "collectd-plugins::memory"
-include_recipe "collectd-plugins::swap"
+include_recipe "graphite::collectd-common"
 
 # apache module requires libcurl
 package "libcurl3-gnutls" do
   action :upgrade
 end
 
-collectd_plugin "network" do
-  options :listen => "0.0.0.0"
+collectd_plugin "zeromq" do
+  template "zeromq_plugin.conf.erb"
+  cookbook "graphite"
+  options :pull => [ "tcp://0.0.0.0:6666" ]
 end
 
 collectd_plugin "syslog" do
